@@ -25,22 +25,22 @@ def index():
 
   #Utilities
   if rq_name == "gemini-api":
-  	GEMINI_TOKEN = headers.get("Authorization")
-  	question = data.get("input")
-  	ai_model = data.get("model")
-  	if not GEMINI_TOKEN:
-  	  return "Error: GEMINI_TOKEN is missing"
-  	if not ai_model:
-  	  return "Error: models is missing"
-  	if not question:
-  	  return "Error: input is missing"
-  	try:
-  	  genai.configure(api_key=GEMINI_TOKEN)
-  	  model = genai.GenerativeModel(ai_model)
-  	  response = model.generate_content(question)
-  	  return response.text
-  	except Exception as e:
-  	  return f"Error: {e}"
+    GEMINI_TOKEN = headers.get("Authorization")
+    question = data.get("input")
+    ai_model = data.get("model")
+    if not GEMINI_TOKEN:
+      return "Error: GEMINI_TOKEN is missing"
+    if not ai_model:
+      return "Error: models is missing"
+    if not question:
+      return "Error: input is missing"
+    try:
+      genai.configure(api_key=GEMINI_TOKEN)
+      model = genai.GenerativeModel(ai_model)
+      response = model.generate_content(question)
+      return response.text
+    except Exception as e:
+      return f"Error: {e}"
   if rq_name == "claude-api":
     CLAUDE_TOKEN = headers.get("Authorization")
     models = data.get("model")
