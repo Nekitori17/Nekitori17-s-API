@@ -11,7 +11,7 @@ app = Flask(__name__)
 @app.route('/')
 def main():
     return render_template('index.html')
-    
+
 #Host at /api
 @app.route("/api", methods=["POST"])
 
@@ -22,17 +22,26 @@ def index():
   data = json.loads(body)
   headers = request.headers
   rq_name = request.args.get("name")
-  
+
   #Utilities
   if rq_name == "gemini-api":
   	GEMINI_TOKEN = headers.get("Authorization")
   	question = data.get("input")
   	ai_model = data.get("model")
-  	genai.configure(api_key=GEMINI_TOKEN)
-  	model = genai.GenerativeModel(ai_model)
-  	response = model.generate_content(question)
-  	return response.text
-  if rq_name == "claude-3-api":
+  	if not GEMINI_TOKEN:
+  	  return "Error: GEMINI_TOKEN is missing"
+  	if not ai_model:
+  	  return "Error: models is missing"
+  	if not question:
+  	  return "Error: input is missing"
+  	try:
+  	  genai.configure(api_key=GEMINI_TOKEN)
+  	  model = genai.GenerativeModel(ai_model)
+  	  response = model.generate_content(question)
+  	  return response.text
+  	except Exception as e:
+  	  return f"Error: {e}"
+  if rq_name == "claude-api":
     CLAUDE_TOKEN = headers.get("Authorization")
     models = data.get("model")
     maxs_token = data.get("max-token")
