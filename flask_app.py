@@ -1,6 +1,7 @@
 #Import Module
 from flask import Flask, request, render_template, abort
 import google.generativeai as genai
+import anthropic
 import json
 
 #Set App
@@ -22,7 +23,7 @@ def index():
   headers = request.headers
   rq_name = request.args.get("name")
   
-  #Extended Utilities
+  #Utilities
   if rq_name == "gemini-api":
   	GEMINI_TOKEN = headers.get("Authorization")
   	question = data.get("input")
@@ -31,6 +32,34 @@ def index():
   	model = genai.GenerativeModel(ai_model)
   	response = model.generate_content(question)
   	return response.text
+  if rq_name == "claude-3-api":
+    CLAUDE_TOKEN = headers.get("Authorization")
+    models = data.get("model")
+    maxs_token = data.get("max-token")
+    question = data.get("input")
+    if not CLAUDE_TOKEN:
+        return "Error: CLAUDE_TOKEN is missing"
+    if not models:
+        return "Error: models is missing"
+    if not maxs_token:
+        return "Error: max-token is missing"
+    if not question:
+        return "Error: input is missing"
+    try:
+        client = anthropic.Anthropic(
+            api_key=CLAUDE_TOKEN,
+        )
+        response = client.messages.create(
+            model=models,
+            max_tokens=maxs_token,
+            temperature=0.0,
+            messages=[
+                {"role": "user", "content": question}
+            ]
+        )
+        return response
+    except Exception as e:
+        return f"Error: {e}"
   if rq_name == "banner-gen":
     input_data = [
       data.get("background"),
@@ -51,4 +80,4 @@ def index():
       result = f"https://api.popcat.xyz/welcomecard?background={output_data[0]}&text1={output_data[1]}&text2={output_data[2]}&text3={output_data[3]}&avatar={output_data[4]}"
     return result
   return abort(404)
-#Optimal Function
+#Optinal Function
