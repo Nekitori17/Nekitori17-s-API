@@ -1,7 +1,6 @@
 #Import Module
 from flask import Flask, request, render_template, abort
 import google.generativeai as genai
-import anthropic
 import json
 
 #Set App
@@ -75,34 +74,6 @@ def index():
       return response.text
     except Exception as e:
       return f"Error: {e}"
-  if rq_name == "claude-api":
-    CLAUDE_TOKEN = headers.get("Authorization")
-    models = data.get("model")
-    maxs_token = data.get("max-token")
-    question = data.get("input")
-    if not CLAUDE_TOKEN:
-        return "Error: CLAUDE_TOKEN is missing"
-    if not models:
-        return "Error: models is missing"
-    if not maxs_token:
-        return "Error: max-token is missing"
-    if not question:
-        return "Error: input is missing"
-    try:
-        client = anthropic.Anthropic(
-            api_key=CLAUDE_TOKEN,
-        )
-        response = client.messages.create(
-            model=models,
-            max_tokens=maxs_token,
-            temperature=0.0,
-            messages=[
-                {"role": "user", "content": question}
-            ]
-        )
-        return response
-    except Exception as e:
-        return f"Error: {e}"
   if rq_name == "banner-gen":
     input_data = [
       data.get("background"),
