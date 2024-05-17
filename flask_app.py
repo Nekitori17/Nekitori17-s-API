@@ -25,9 +25,39 @@ def index():
 
   #Utilities
   if rq_name == "gemini-api":
+    
     GEMINI_TOKEN = headers.get("Authorization")
     question = data.get("input")
     ai_model = data.get("model")
+    
+    #Config
+    generation_config = {
+      "temperature": 1,
+      "top_p": 0.95,
+      "top_k": 64,
+      "max_output_tokens": 8192,
+      "response_mime_type": "text/plain",
+    }
+    safety_settings = [
+      {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_NONE",
+      },
+      {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_NONE",
+      },
+      {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_NONE",
+      },
+      {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_NONE",
+      },
+    ]
+    
+    #Check Data
     if not GEMINI_TOKEN:
       return "Error: GEMINI_TOKEN is missing"
     if not ai_model:
@@ -36,7 +66,11 @@ def index():
       return "Error: input is missing"
     try:
       genai.configure(api_key=GEMINI_TOKEN)
-      model = genai.GenerativeModel(ai_model)
+      model = genai.GenerativeModel(
+        model_name=ai_model,
+        safety_settings=safety_settings,
+        generation_config=generation_config,
+      )
       response = model.generate_content(question)
       return response.text
     except Exception as e:
