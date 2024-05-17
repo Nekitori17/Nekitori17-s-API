@@ -1,6 +1,8 @@
 #Import Module
 from flask import Flask, request, render_template, abort
 import google.generativeai as genai
+from datetime import datetime
+import pytz
 import json
 
 #Set App
@@ -21,14 +23,15 @@ def index():
   data = json.loads(body)
   headers = request.headers
   rq_name = request.args.get("name")
+  inputTimeZone = data.get("timezone")
 
   #Utilities
   if rq_name == "gemini-api":
-    
+
     GEMINI_TOKEN = headers.get("Authorization")
     question = data.get("input")
     ai_model = data.get("model")
-    
+
     #Config
     generation_config = {
       "temperature": 1,
@@ -55,7 +58,7 @@ def index():
         "threshold": "BLOCK_NONE",
       },
     ]
-    
+
     #Check Data
     if not GEMINI_TOKEN:
       return "Error: GEMINI_TOKEN is missing"
@@ -71,9 +74,9 @@ def index():
         generation_config=generation_config,
       )
       response = model.generate_content(question)
-      return response.text
+      return { "message": response.text, "timestamp": getTime(inputTimeZone)}
     except Exception as e:
-      return f"Error: {e}"
+      return f"『Error』: {e}"
   if rq_name == "banner-gen":
     input_data = [
       data.get("background"),
@@ -92,6 +95,16 @@ def index():
         break
     if result is None:
       result = f"https://api.popcat.xyz/welcomecard?background={output_data[0]}&text1={output_data[1]}&text2={output_data[2]}&text3={output_data[3]}&avatar={output_data[4]}"
-    return result
+    return { "url": result, "timestamp": getTime(inputTimeZone) }
   return abort(404)
 #Optinal Function
+def getTime(timezone):
+  if timezone:
+    try:
+      timezone = pytz.timezone(timezone)
+      current_time = datetime.now(timezone)
+      return current_time.strftime('%a, %Y/%m/%d × %H:%M:%S. UTC%Z')
+    except Exception as e:
+      return f'『Error』: {e}'
+  else:
+    return datetime.now()
